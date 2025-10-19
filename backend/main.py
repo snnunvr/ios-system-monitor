@@ -398,7 +398,10 @@ if __name__ == "__main__":
         app,
         host="0.0.0.0",
         port=1571,
-        log_level="info"
+        log_level="info",
+        timeout_keep_alive=5,
+        limit_concurrency=100,
+        backlog=2048
     )
 
 @app.post("/api/system/reboot/windows")
