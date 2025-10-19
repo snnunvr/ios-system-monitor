@@ -5,7 +5,7 @@ class ApiClient {
   late Dio _dio;
   final String baseUrl;
 
-  ApiClient({this.baseUrl = 'http://localhost:1571'}) {
+  ApiClient({this.baseUrl = 'http://100.64.0.1:1571'}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,

@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     apiClient = context.read<ApiClient>();
-    _serverUrlController = TextEditingController(text: 'http://localhost:1571');
+    _serverUrlController = TextEditingController(text: 'http://100.64.0.1:1571');
     _checkConnection();
   }
 
@@ -95,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextField(
               controller: _serverUrlController,
               decoration: InputDecoration(
-                hintText: 'http://localhost:1571',
+                hintText: 'http://100.64.0.1:1571',
                 label: Text('Sunucu Adresi'),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
