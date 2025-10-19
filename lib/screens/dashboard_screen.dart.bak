@@ -117,10 +117,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     if (systemData == null) return LoadingWidget();
 
-    final cpu = systemData!['cpu'] as Map<String, dynamic>? ?? {};
-    final ram = systemData!['ram'] as Map<String, dynamic>? ?? {};
-    final disk = systemData!['disk'] as Map<String, dynamic>? ?? {};
-    final gpus = (systemData!['gpus'] as List<dynamic>?) ?? [];
+    final cpu = systemData!['cpu'];
+    final ram = systemData!['ram'];
+    final disk = systemData!['disk'];
+    final gpus = systemData!['gpus'] as List<dynamic>;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(12),
@@ -134,9 +134,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             children: [
-              StatCard(title: 'CPU', value: '${(cpu?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.speed),
-              StatCard(title: 'RAM', value: '${(ram?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.memory),
-              StatCard(title: 'Disk', value: '${(disk?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.storage),
+              StatCard(title: 'CPU', value: '${cpu['percent'].toStringAsFixed(0)}%', icon: Icons.cpu),
+              StatCard(title: 'RAM', value: '${ram['percent'].toStringAsFixed(0)}%', icon: Icons.memory),
+              StatCard(title: 'Disk', value: '${disk['percent'].toStringAsFixed(0)}%', icon: Icons.storage),
               StatCard(title: 'GPU', value: '${gpus.length}', icon: Icons.videogame_asset),
             ],
           ),
@@ -163,11 +163,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text('🖥️ İşlemci', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
           SizedBox(height: 8),
-          ProgressBar(label: 'CPU', value: cpu?['percent'], color: AppColors.warning),
+          ProgressBar(label: 'CPU', value: cpu['percent'], color: AppColors.warning),
           SizedBox(height: 8),
-          Text('${cpu?['count']} Cores @ ${cpu?['freq_ghz'].toStringAsFixed(2)} GHz', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text('${cpu['count']} Cores @ ${cpu['freq_ghz'].toStringAsFixed(2)} GHz', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
           SizedBox(height: 4),
-          Text('Sıcaklık: ${cpu?['temp_c'].toStringAsFixed(1)}°C', style: TextStyle(color: AppColors.info, fontSize: 12)),
+          Text('Sıcaklık: ${cpu['temp_c'].toStringAsFixed(1)}°C', style: TextStyle(color: AppColors.info, fontSize: 12)),
         ],
       ),
     );
@@ -185,12 +185,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text('💾 Depolama', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
           SizedBox(height: 8),
-          ProgressBar(label: 'RAM', value: ram?['percent'], color: AppColors.primary),
+          ProgressBar(label: 'RAM', value: ram['percent'], color: AppColors.primary),
           SizedBox(height: 8),
-          ProgressBar(label: 'Disk', value: disk?['percent'], color: AppColors.success),
+          ProgressBar(label: 'Disk', value: disk['percent'], color: AppColors.success),
           SizedBox(height: 8),
-          Text('RAM: ${ram?['used_gb'].toStringAsFixed(1)}/${ram?['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-          Text('Disk: ${disk?['used_gb'].toStringAsFixed(1)}/${disk?['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text('RAM: ${ram['used_gb'].toStringAsFixed(1)}/${ram['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text('Disk: ${disk['used_gb'].toStringAsFixed(1)}/${disk['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
         ],
       ),
     );
