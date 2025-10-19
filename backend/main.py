@@ -40,6 +40,11 @@ training_tracker = TrainingTracker()
 # WebSocket bağlantıları
 active_connections: List[WebSocket] = []
 
+# Basit cache - 3 saniye boyunca aynı veriyi dön
+import time
+_system_cache = {"data": None, "timestamp": 0}
+_cache_duration = 3  # saniye
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -76,12 +81,26 @@ async def health_check():
 
 @app.get("/api/system")
 async def get_system_info():
-    """Sistem bilgisini al"""
+    """Sistem bilgisini al - 3 sn cache"""
     try:
+        now = time.time()
+        # Cache'de fresh veri var mı?
+        if _system_cache["data"] and (now - _system_cache["timestamp"]) < _cache_duration:
+            return {
+                "status": "success",
+                "data": _system_cache["data"],
+                "cached": True
+            }
+        
+        # Cache yok veya eski, yenile
         system_data = system_monitor.to_dict()
+        _system_cache["data"] = system_data
+        _system_cache["timestamp"] = now
+        
         return {
             "status": "success",
-            "data": system_data
+            "data": system_data,
+            "cached": False
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
