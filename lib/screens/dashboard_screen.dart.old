@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
-import '../widgets/gradient_card.dart';
 import 'terminal_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -79,7 +78,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         unselectedItemColor: AppColors.textSecondary,
         currentIndex: _selectedIndex,
         onTap: (i) => setState(() => _selectedIndex = i),
-        type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -94,12 +92,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Portlar',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.terminal),
-            label: 'Terminal',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.bolt),
             label: 'Enerji',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.terminal),
+            label: 'Terminal',
           ),
         ],
       ),
@@ -115,9 +113,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(Icons.error, color: AppColors.danger, size: 48),
             SizedBox(height: 16),
-            Text('Bağlantı hatası', style: TextStyle(color: AppColors.textPrimary)),
-            SizedBox(height: 8),
-            Text(error!, style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text('Bağlantı hatası',
+                style: TextStyle(color: AppColors.textPrimary)),
             SizedBox(height: 16),
             ElevatedButton(onPressed: _loadData, child: Text('Tekrar Dene')),
           ],
@@ -132,70 +129,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final gpus = (systemData!['gpus'] as List<dynamic>?) ?? [];
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GridView.count(
             crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.2,
             children: [
-              GradientStatCard(
-                title: 'CPU Kullanımı',
-                value: '${(cpu?['percent'] as num? ?? 0).toStringAsFixed(0)}%',
-                icon: Icons.speed,
-                gradientColors: [Color(0xFFFF6B6B), Color(0xFFEE5A6F)],
-              ),
-              GradientStatCard(
-                title: 'RAM Kullanımı',
-                value: '${(ram?['percent'] as num? ?? 0).toStringAsFixed(0)}%',
-                icon: Icons.memory,
-                gradientColors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
-              ),
-              GradientStatCard(
-                title: 'Disk Kullanımı',
-                value: '${(disk?['percent'] as num? ?? 0).toStringAsFixed(0)}%',
-                icon: Icons.storage,
-                gradientColors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-              ),
-              GradientStatCard(
-                title: 'GPU Count',
-                value: '${gpus.length}',
-                icon: Icons.videogame_asset,
-                gradientColors: [Color(0xFFF093FB), Color(0xFFF5576C)],
-              ),
+              StatCard(title: 'CPU', value: '${(cpu?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.speed),
+              StatCard(title: 'RAM', value: '${(ram?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.memory),
+              StatCard(title: 'Disk', value: '${(disk?['percent'] as num? ?? 0).toStringAsFixed(0)}%', icon: Icons.storage),
+              StatCard(title: 'GPU', value: '${gpus.length}', icon: Icons.videogame_asset),
             ],
           ),
-          SizedBox(height: 20),
-          AnimatedProgressCard(
-            title: '🖥️ İşlemci',
-            value: (cpu?['percent'] as num? ?? 0).toDouble(),
-            color: AppColors.danger,
-            icon: Icons.speed,
-            subtitle: '${cpu?['count']} Cores @ ${(cpu?['freq_ghz'] ?? 0).toStringAsFixed(2)} GHz · ${(cpu?['temp_c'] ?? 0).toStringAsFixed(1)}°C',
-          ),
+          SizedBox(height: 16),
+          _buildCpuCard(cpu),
           SizedBox(height: 12),
-          AnimatedProgressCard(
-            title: '💾 Bellek (RAM)',
-            value: (ram?['percent'] as num? ?? 0).toDouble(),
-            color: AppColors.primary,
-            icon: Icons.memory,
-            subtitle: '${(ram?['used_gb'] ?? 0).toStringAsFixed(1)}/${(ram?['total_gb'] ?? 0).toStringAsFixed(1)} GB kullanılıyor',
-          ),
-          SizedBox(height: 12),
-          AnimatedProgressCard(
-            title: '💿 Disk',
-            value: (disk?['percent'] as num? ?? 0).toDouble(),
-            color: AppColors.success,
-            icon: Icons.storage,
-            subtitle: '${(disk?['used_gb'] ?? 0).toStringAsFixed(1)}/${(disk?['total_gb'] ?? 0).toStringAsFixed(1)} GB kullanılıyor',
-          ),
+          _buildMemoryCard(ram, disk),
           SizedBox(height: 12),
           if (gpus.isNotEmpty) _buildGpuList(gpus),
+        ],
+      ),
+    );
+  }
           SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -203,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _rebootToWindows(context),
               icon: Icon(Icons.computer, size: 20),
-              label: Text('🪟 Windows\'a Geç', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              label: Text('🪟 Windows'a Geç', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF0078D4),
                 foregroundColor: Colors.white,
@@ -213,6 +173,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+
+  Widget _buildCpuCard(dynamic cpu) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('🖥️ İşlemci', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+          SizedBox(height: 8),
+          ProgressBar(label: 'CPU', value: cpu?['percent'], color: AppColors.warning),
+          SizedBox(height: 8),
+          Text('${cpu?['count']} Cores @ ${cpu?['freq_ghz'].toStringAsFixed(2)} GHz', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          SizedBox(height: 4),
+          Text('Sıcaklık: ${cpu?['temp_c'].toStringAsFixed(1)}°C', style: TextStyle(color: AppColors.info, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMemoryCard(dynamic ram, dynamic disk) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('💾 Depolama', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+          SizedBox(height: 8),
+          ProgressBar(label: 'RAM', value: ram?['percent'], color: AppColors.primary),
+          SizedBox(height: 8),
+          ProgressBar(label: 'Disk', value: disk?['percent'], color: AppColors.success),
+          SizedBox(height: 8),
+          Text('RAM: ${ram?['used_gb'].toStringAsFixed(1)}/${ram?['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text('Disk: ${disk?['used_gb'].toStringAsFixed(1)}/${disk?['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
         ],
       ),
     );
@@ -222,50 +223,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('🎮 GPU\'lar (${gpus.length})', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('🎮 GPU\'lar (${gpus.length})', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
         SizedBox(height: 8),
         ...gpus.map((gpu) {
           final memory = gpu['memory'];
-          return GlassCard(
-            padding: EdgeInsets.all(16),
+          return Container(
+            margin: EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(12)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(gpu['name'], style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
-                SizedBox(height: 12),
-                AnimatedProgressCard(
-                  title: 'Kullanım',
-                  value: (gpu['utilization_percent'] as num? ?? 0).toDouble(),
-                  color: AppColors.warning,
-                  icon: Icons.show_chart,
-                  subtitle: '',
-                ),
+                Text(gpu['name'], style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                 SizedBox(height: 8),
-                AnimatedProgressCard(
-                  title: 'VRAM',
-                  value: (memory['percent'] as num? ?? 0).toDouble(),
-                  color: AppColors.info,
-                  icon: Icons.memory,
-                  subtitle: '${(memory['used_mb'] ?? 0) ~/ 1024}/${(memory['total_mb'] ?? 0) ~/ 1024} GB',
-                ),
-                SizedBox(height: 12),
+                ProgressBar(label: 'Kullanım', value: gpu['utilization_percent']),
+                SizedBox(height: 8),
+                ProgressBar(label: 'Bellek', value: memory['percent']),
+                SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.thermostat, color: AppColors.info, size: 16),
-                        SizedBox(width: 4),
-                        Text('${(gpu['temperature_c'] ?? 0).toStringAsFixed(0)}°C', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.bolt, color: AppColors.danger, size: 16),
-                        SizedBox(width: 4),
-                        Text('${(gpu['power']['draw_w'] ?? 0).toStringAsFixed(0)}W', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                      ],
-                    ),
+                    Text('🌡️ ${gpu['temperature_c'].toStringAsFixed(0)}°C', style: TextStyle(color: AppColors.info, fontSize: 11)),
+                    Text('⚡ ${gpu['power']['draw_w'].toStringAsFixed(0)}W', style: TextStyle(color: AppColors.danger, fontSize: 11)),
                   ],
                 ),
               ],
@@ -287,6 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildEnergyPage() {
     return Center(child: Text('Enerji Maliyeti - Yapılacak', style: TextStyle(color: AppColors.textPrimary)));
   }
+}
 
   Future<void> _rebootToWindows(BuildContext context) async {
     final confirm = await showDialog<bool>(
