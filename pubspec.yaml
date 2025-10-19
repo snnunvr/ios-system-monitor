@@ -51,6 +51,8 @@ dependencies:
   
   # Utilities
   uuid: ^4.0.0
+  dartssh2: ^2.13.0
+  xterm: ^4.0.0
 
 dev_dependencies:
   flutter_test:

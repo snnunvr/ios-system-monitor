@@ -400,3 +400,19 @@ if __name__ == "__main__":
         port=1571,
         log_level="info"
     )
+
+@app.post("/api/system/reboot/windows")
+async def reboot_to_windows():
+    """GRUB üzerinden Windows'a geçip reboot et"""
+    try:
+        import subprocess
+        # GRUB'da Windows entry'sini bul ve seçili yap
+        subprocess.run([
+            'sudo', 'grub-reboot', 'Windows Boot Manager (on /dev/nvme0n1p1)'
+        ], check=True)
+        # Sistemi reboot et
+        subprocess.run(['sudo', 'reboot'], check=False)
+        return {"status": "success", "message": "Windows'a geçiliyor..."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Reboot hatası: {str(e)}")
+
