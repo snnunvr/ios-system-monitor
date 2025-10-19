@@ -1,0 +1,152 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
+class ApiClient {
+  late Dio _dio;
+  final String baseUrl;
+
+  ApiClient({this.baseUrl = 'http://localhost:1571'}) {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        contentType: 'application/json',
+      ),
+    );
+  }
+
+  // Sistem Bilgisi
+  Future<Map<String, dynamic>> getSystemInfo() async {
+    try {
+      final response = await _dio.get('/api/system');
+      return response.data;
+    } catch (e) {
+      throw Exception('Sistem bilgisi alınamadı: $e');
+    }
+  }
+
+  // GPU Bilgisi
+  Future<Map<String, dynamic>> getGpuInfo() async {
+    try {
+      final response = await _dio.get('/api/system/gpu');
+      return response.data;
+    } catch (e) {
+      throw Exception('GPU bilgisi alınamadı: $e');
+    }
+  }
+
+  // CPU Bilgisi
+  Future<Map<String, dynamic>> getCpuInfo() async {
+    try {
+      final response = await _dio.get('/api/system/cpu');
+      return response.data;
+    } catch (e) {
+      throw Exception('CPU bilgisi alınamadı: $e');
+    }
+  }
+
+  // Bellek Bilgisi
+  Future<Map<String, dynamic>> getMemoryInfo() async {
+    try {
+      final response = await _dio.get('/api/system/memory');
+      return response.data;
+    } catch (e) {
+      throw Exception('Bellek bilgisi alınamadı: $e');
+    }
+  }
+
+  // Enerji Maliyeti
+  Future<Map<String, dynamic>> getEnergyCost() async {
+    try {
+      final response = await _dio.get('/api/energy');
+      return response.data;
+    } catch (e) {
+      throw Exception('Enerji maliyeti alınamadı: $e');
+    }
+  }
+
+  // Port Analizi
+  Future<Map<String, dynamic>> analyzePorts() async {
+    try {
+      final response = await _dio.get('/api/ports');
+      return response.data;
+    } catch (e) {
+      throw Exception('Port analizi yapılamadı: $e');
+    }
+  }
+
+  // Dinlemede olan portlar
+  Future<Map<String, dynamic>> getListeningPorts() async {
+    try {
+      final response = await _dio.get('/api/ports/listening');
+      return response.data;
+    } catch (e) {
+      throw Exception('Dinlemede olan portlar alınamadı: $e');
+    }
+  }
+
+  // Dış bağlantılar
+  Future<Map<String, dynamic>> getForeignConnections() async {
+    try {
+      final response = await _dio.get('/api/ports/foreign');
+      return response.data;
+    } catch (e) {
+      throw Exception('Dış bağlantılar alınamadı: $e');
+    }
+  }
+
+  // Training Jobs
+  Future<Map<String, dynamic>> getTrainingJobs() async {
+    try {
+      final response = await _dio.get('/api/training');
+      return response.data;
+    } catch (e) {
+      throw Exception('Training jobs alınamadı: $e');
+    }
+  }
+
+  // Training Job Durdur
+  Future<Map<String, dynamic>> stopTrainingJob(int pid) async {
+    try {
+      final response = await _dio.post('/api/training/stop/$pid');
+      return response.data;
+    } catch (e) {
+      throw Exception('Training job durdurulamadı: $e');
+    }
+  }
+
+  // Training Job Duraklat
+  Future<Map<String, dynamic>> pauseTrainingJob(int pid) async {
+    try {
+      final response = await _dio.post('/api/training/pause/$pid');
+      return response.data;
+    } catch (e) {
+      throw Exception('Training job duraklatılamadı: $e');
+    }
+  }
+
+  // Training Job Devam Ettir
+  Future<Map<String, dynamic>> resumeTrainingJob(int pid) async {
+    try {
+      final response = await _dio.post('/api/training/resume/$pid');
+      return response.data;
+    } catch (e) {
+      throw Exception('Training job devam ettirilemedi: $e');
+    }
+  }
+
+  // Sağlık Kontrolü
+  Future<bool> healthCheck() async {
+    try {
+      final response = await _dio.get('/health');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void setBaseUrl(String url) {
+    _dio.options.baseUrl = url;
+  }
+}

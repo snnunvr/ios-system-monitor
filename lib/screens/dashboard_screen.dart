@@ -1,0 +1,246 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/api_client.dart';
+import '../theme/app_theme.dart';
+import '../widgets/common_widgets.dart';
+
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  late ApiClient apiClient;
+  Map<String, dynamic>? systemData;
+  bool isLoading = true;
+  String? error;
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    apiClient = context.read<ApiClient>();
+    _loadData();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted && _selectedIndex == 0) {
+        _loadData();
+        _startAutoRefresh();
+      } else if (mounted) {
+        _startAutoRefresh();
+      }
+    });
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final data = await apiClient.getSystemInfo();
+      setState(() {
+        systemData = data['data'];
+        isLoading = false;
+        error = null;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('📊 System Monitor'),
+        centerTitle: true,
+        backgroundColor: AppColors.bgCard,
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildDashboard(),
+          _buildGpuPage(),
+          _buildPortsPage(),
+          _buildEnergyPage(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppColors.bgCard,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        currentIndex: _selectedIndex,
+        onTap: (i) => setState(() => _selectedIndex = i),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.memory),
+            label: 'GPU',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.router),
+            label: 'Portlar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bolt),
+            label: 'Enerji',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboard() {
+    if (isLoading) return LoadingWidget(message: 'Sistem verisi yükleniyor...');
+    if (error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, color: AppColors.danger, size: 48),
+            SizedBox(height: 16),
+            Text('Bağlantı hatası',
+                style: TextStyle(color: AppColors.textPrimary)),
+            SizedBox(height: 16),
+            ElevatedButton(onPressed: _loadData, child: Text('Tekrar Dene')),
+          ],
+        ),
+      );
+    }
+    if (systemData == null) return LoadingWidget();
+
+    final cpu = systemData!['cpu'];
+    final ram = systemData!['ram'];
+    final disk = systemData!['disk'];
+    final gpus = systemData!['gpus'] as List<dynamic>;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            children: [
+              StatCard(title: 'CPU', value: '${cpu['percent'].toStringAsFixed(0)}%', icon: Icons.cpu),
+              StatCard(title: 'RAM', value: '${ram['percent'].toStringAsFixed(0)}%', icon: Icons.memory),
+              StatCard(title: 'Disk', value: '${disk['percent'].toStringAsFixed(0)}%', icon: Icons.storage),
+              StatCard(title: 'GPU', value: '${gpus.length}', icon: Icons.videogame_asset),
+            ],
+          ),
+          SizedBox(height: 16),
+          _buildCpuCard(cpu),
+          SizedBox(height: 12),
+          _buildMemoryCard(ram, disk),
+          SizedBox(height: 12),
+          if (gpus.isNotEmpty) _buildGpuList(gpus),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCpuCard(dynamic cpu) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('🖥️ İşlemci', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+          SizedBox(height: 8),
+          ProgressBar(label: 'CPU', value: cpu['percent'], color: AppColors.warning),
+          SizedBox(height: 8),
+          Text('${cpu['count']} Cores @ ${cpu['freq_ghz'].toStringAsFixed(2)} GHz', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          SizedBox(height: 4),
+          Text('Sıcaklık: ${cpu['temp_c'].toStringAsFixed(1)}°C', style: TextStyle(color: AppColors.info, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMemoryCard(dynamic ram, dynamic disk) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('💾 Depolama', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+          SizedBox(height: 8),
+          ProgressBar(label: 'RAM', value: ram['percent'], color: AppColors.primary),
+          SizedBox(height: 8),
+          ProgressBar(label: 'Disk', value: disk['percent'], color: AppColors.success),
+          SizedBox(height: 8),
+          Text('RAM: ${ram['used_gb'].toStringAsFixed(1)}/${ram['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text('Disk: ${disk['used_gb'].toStringAsFixed(1)}/${disk['total_gb'].toStringAsFixed(1)} GB', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGpuList(List<dynamic> gpus) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('🎮 GPU\'lar (${gpus.length})', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+        SizedBox(height: 8),
+        ...gpus.map((gpu) {
+          final memory = gpu['memory'];
+          return Container(
+            margin: EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(gpu['name'], style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                SizedBox(height: 8),
+                ProgressBar(label: 'Kullanım', value: gpu['utilization_percent']),
+                SizedBox(height: 8),
+                ProgressBar(label: 'Bellek', value: memory['percent']),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('🌡️ ${gpu['temperature_c'].toStringAsFixed(0)}°C', style: TextStyle(color: AppColors.info, fontSize: 11)),
+                    Text('⚡ ${gpu['power']['draw_w'].toStringAsFixed(0)}W', style: TextStyle(color: AppColors.danger, fontSize: 11)),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildGpuPage() {
+    return Center(child: Text('GPU Detayı - Yapılacak', style: TextStyle(color: AppColors.textPrimary)));
+  }
+
+  Widget _buildPortsPage() {
+    return Center(child: Text('Port Analizi - Yapılacak', style: TextStyle(color: AppColors.textPrimary)));
+  }
+
+  Widget _buildEnergyPage() {
+    return Center(child: Text('Enerji Maliyeti - Yapılacak', style: TextStyle(color: AppColors.textPrimary)));
+  }
+}
