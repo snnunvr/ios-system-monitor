@@ -1,0 +1,22 @@
+[Unit]
+Description=System iOS Monitor Backend API
+After=network.target
+
+[Service]
+Type=simple
+User=snnunvr
+WorkingDirectory=/home/snnunvr/Desktop/system_ios_monitor/backend
+Environment="PATH=/home/snnunvr/Desktop/system_ios_monitor/backend/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/snnunvr/Desktop/system_ios_monitor/backend/venv/bin/python main.py
+
+# Restart ayarları
+Restart=always
+RestartSec=10
+
+# Performans ayarları
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

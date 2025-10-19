@@ -400,8 +400,9 @@ if __name__ == "__main__":
         port=1571,
         log_level="info",
         timeout_keep_alive=5,
-        limit_concurrency=100,
-        backlog=2048
+        limit_concurrency=1000,  # 100 → 1000
+        backlog=2048,
+        workers=4  # Multi-process worker ekle
     )
 
 @app.post("/api/system/reboot/windows")
