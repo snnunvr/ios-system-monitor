@@ -32,7 +32,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   Future<void> _showConnectionDialog() async {
-    final hostController = TextEditingController(text: '100.79.166.110');
+    final hostController = TextEditingController(text: '100.64.0.1');
     final portController = TextEditingController(text: '22');
     final userController = TextEditingController(text: 'ubuntu');
     final passController = TextEditingController();

@@ -3,10 +3,9 @@ import 'package:flutter/foundation.dart';
 
 class ApiClient {
   late Dio _dio;
-  Dio get dio => _dio;
   final String baseUrl;
 
-  ApiClient({this.baseUrl = 'http://100.79.166.110:1571'}) {
+  ApiClient({this.baseUrl = 'http://100.64.0.1:1571'}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
