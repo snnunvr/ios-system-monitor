@@ -29,7 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _startAutoRefresh() {
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(Duration(seconds: 10), () {  // 2 → 10 saniye
       if (mounted && _selectedIndex == 0) {
         _loadData();
         _startAutoRefresh();
