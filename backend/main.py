@@ -409,19 +409,7 @@ async def websocket_endpoint(websocket: WebSocket):
         active_connections.remove(websocket)
 
 
-if __name__ == "__main__":
-    import uvicorn
-    
-    # Tailscale üzerinden erişim için 0.0.0.0 dinle
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=1571,
-        log_level="info",
-        timeout_keep_alive=5,
-        limit_concurrency=1000,  # Çok fazla concurrent istek
-        backlog=2048
-    )
+# ============ SİSTEM YÖNETİMİ ============
 
 @app.post("/api/system/reboot/windows")
 async def reboot_to_windows():
@@ -438,3 +426,17 @@ async def reboot_to_windows():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Reboot hatası: {str(e)}")
 
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Tailscale üzerinden erişim için 0.0.0.0 dinle
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=1571,
+        log_level="info",
+        timeout_keep_alive=5,
+        limit_concurrency=1000,  # Çok fazla concurrent istek
+        backlog=2048
+    )
