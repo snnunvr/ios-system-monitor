@@ -418,7 +418,7 @@ async def reboot_to_windows():
         import subprocess
         # GRUB'da Windows entry'sini bul ve seçili yap
         subprocess.run([
-            'sudo', 'grub-reboot', 'Windows Boot Manager (on /dev/nvme0n1p1)'
+            'sudo', 'grub-reboot', 'Windows Boot Manager (NVMe 512GB)'
         ], check=True)
         # Sistemi reboot et
         subprocess.run(['sudo', 'reboot'], check=False)
